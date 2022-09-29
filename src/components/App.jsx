@@ -1,10 +1,82 @@
-import { Component } from "react";
+import { Component, useState, useEffect, useRef} from "react";
 import { Section } from "./Section/Section";
 import { nanoid } from "nanoid";
 import { AddNumberForm } from "./AddNumberForm/AddNumberForm";
 import { ContactsList } from "./ContactsList/ContactsList";
 import { FindContactForm } from "./FindContactForm/FindContactForm";
-export class App extends Component {
+
+export const App = () => {
+  const renderFirst = useRef(true);
+
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    const localData = window.localStorage.getItem("phonebookContacks");
+    console.log("Start");
+    if(localData){
+      setContacts(JSON.parse(localData));
+    }
+  }, []);
+
+  useEffect(() => {
+    if(renderFirst.current){
+      renderFirst.current = false;
+      return;
+    }
+    console.log("Continue");
+    window.localStorage.setItem("phonebookContacks", JSON.stringify(contacts));
+  },[contacts]);
+
+
+  const onSubmit = (formState) => {
+    if(contacts.some(({name}) => name.toLowerCase() === formState.name.toLowerCase())){
+      alert(`${formState.name} is already in contacts`);
+      return;
+    }
+    const newContacts = [...contacts];
+    const contact = {
+      name: formState.name,
+      number: formState.number,
+      id: nanoid()
+    }
+    newContacts.push(contact);
+    setContacts(newContacts);
+  }
+
+  const chageFilter = (value) => {
+    value = value.toLowerCase();
+    setFilter(value);
+  }
+
+  const filterContacts = () => {
+    if(!filter){
+      return(contacts)
+    }
+    return contacts.filter(({name}) => {
+      return(name.toLowerCase().includes(filter));
+    })
+  }
+
+  const deleteContact = (id) => {
+    const newContacts = contacts.filter(item => item.id !== id);
+    setContacts(newContacts);
+  }
+
+  return (
+    <div>
+      <Section title="Phonebook">
+        <AddNumberForm onSubmit={onSubmit}/>
+      </Section>
+      <Section title="Contacts">
+        <FindContactForm filterChage={chageFilter}/>
+        <ContactsList contacts={filterContacts()} deleteContact={deleteContact}/>
+      </Section>
+    </div>
+  );
+}
+
+export class oldApp extends Component {
   
   state = {
     contacts: [],
@@ -24,11 +96,6 @@ export class App extends Component {
     if(prevState.contacts !== this.state.contacts){
       localStorage.setItem("phonebookContacks", JSON.stringify(this.state.contacts));
     }
-  }
-
-  chageHendler = (event) => {
-    const {value, name} = event.target;
-    this.setState({[name]: value})
   }
 
   onSubmit = (formState) => {
