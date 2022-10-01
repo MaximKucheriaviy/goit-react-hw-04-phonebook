@@ -1,4 +1,4 @@
-import { Component, useState, useEffect, useRef} from "react";
+import { Component, useState, useEffect} from "react";
 import { Section } from "./Section/Section";
 import { nanoid } from "nanoid";
 import { AddNumberForm } from "./AddNumberForm/AddNumberForm";
@@ -6,25 +6,11 @@ import { ContactsList } from "./ContactsList/ContactsList";
 import { FindContactForm } from "./FindContactForm/FindContactForm";
 
 export const App = () => {
-  const renderFirst = useRef(true);
-
-  const [contacts, setContacts] = useState([]);
+  const localData = window.localStorage.getItem("phonebookContacks");
+  const [contacts, setContacts] = useState(localData ? JSON.parse(localData) : []);
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    const localData = window.localStorage.getItem("phonebookContacks");
-    console.log("Start");
-    if(localData){
-      setContacts(JSON.parse(localData));
-    }
-  }, []);
-
-  useEffect(() => {
-    if(renderFirst.current){
-      renderFirst.current = false;
-      return;
-    }
-    console.log("Continue");
     window.localStorage.setItem("phonebookContacks", JSON.stringify(contacts));
   },[contacts]);
 
